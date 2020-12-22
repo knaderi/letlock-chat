@@ -1,0 +1,5 @@
+version: 0.0
+os: linux
+files:
+  - source: ./letlock-filetransfer-backend-0.0.1-SNAPSHOT.jar
+    destination: /target

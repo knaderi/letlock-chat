@@ -1,0 +1,31 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    username: dev/Appdata/letlock/postgres:username
+    password: dev/Appdata/letlock/postgres:password
+    host: dev/Appdata/letlock/postgres:host
+    port: dev/Appdata/letlock/postgres:port
+    databasename: dev/Appdata/letlock/postgres:databasename
+phases:
+  install:
+    runtime-versions:
+      java: corretto8
+  pre_build:
+    commands:
+      - echo Nothing to do in the pre_build phase...
+  build:
+    commands:
+      - echo Build started on `date`      
+      - mvn clean install -Dmaven.test.skip=true -Dspring.profiles.active="dev"
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - mv target/letlock-chat-0.0.1-SNAPSHOT.jar  application.jar
+cache:
+  paths:
+    - '/root/.m2/**/*'
+artifacts:
+  files:
+    - application.jar
+    - Procfile  
