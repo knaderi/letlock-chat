@@ -27,8 +27,20 @@ public class RoomService {
 
     public SimpleRoomDto addRoom(String roomName) {
         final Room room = new Room(roomName);
-        final List<Room> roomList = addRoom(room);
+        roomList = addRoom(room);
         return room.asSimpleRoomDto();
+    }
+    
+    public void removeRoom(UserRoomKeyDto userRoomKey) {
+        final User user = new User(userRoomKey.userName, userRoomKey.token);
+        this.roomList
+                .find(room -> room.key.equals(userRoomKey.roomKey))
+                .map(oldRoom -> {
+                    final Room newRoom = oldRoom.unsubscribe(user);
+                    this.roomList = this.roomList
+                            .remove(oldRoom);
+                    return newRoom;
+                });
     }
 
     public Either<AppError, ChatRoomUserListDto> usersInChatRoom(String roomKey) {
@@ -39,7 +51,7 @@ public class RoomService {
     }
 
     public Either<AppError, ChatRoomUserListDto> addUserToRoom(UserRoomKeyDto userRoomKey) {
-        final User user = new User(userRoomKey.userName);
+        final User user = new User(userRoomKey.userName, userRoomKey.token);
         this.roomList
                 .find(room -> room.key.equals(userRoomKey.roomKey))
                 .map(oldRoom -> {
@@ -51,7 +63,7 @@ public class RoomService {
     }
 
     public Either<AppError, ChatRoomUserListDto> removeUserFromRoom(UserRoomKeyDto userRoomKey) {
-        final User user = new User(userRoomKey.userName);
+        final User user = new User(userRoomKey.userName, userRoomKey.token);
         this.roomList
                 .find(room -> room.key.equals(userRoomKey.roomKey))
                 .map(oldRoom -> {

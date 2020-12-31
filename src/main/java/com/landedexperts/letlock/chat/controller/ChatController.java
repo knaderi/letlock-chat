@@ -4,6 +4,7 @@ import static java.lang.String.format;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -28,78 +29,99 @@ import io.vavr.collection.List;
 @Controller
 public class ChatController {
 
-    private static final Logger log = LoggerFactory.getLogger(ChatController.class);
+	@Value("${letlock.filetransfer.backend.login.url}")
+	private String writeTimeOut;
 
-    private final RoomService roomService;
-    private final SimpMessageSendingOperations messagingTemplate;
-   
-    
-    public ChatController(RoomService roomService, SimpMessageSendingOperations messagingTemplate) {
-        this.roomService = roomService;
-        this.messagingTemplate = messagingTemplate;
-    }
+	private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
-    @SubscribeMapping("/chat/roomList")
-    public List<SimpleRoomDto> roomList() {
-        return roomService.roomList();
-    }
+	private final RoomService roomService;
+	private final SimpMessageSendingOperations messagingTemplate;
 
-    @MessageMapping("/chat/addRoom")
-    @SendTo("/chat/newRoom")
-    public SimpleRoomDto addRoom(NewRoomDto newRoom) {
-    	log.debug("Adding room");
-        return roomService.addRoom(newRoom.roomName);
-    }
+	public ChatController(RoomService roomService, SimpMessageSendingOperations messagingTemplate) {
+		this.roomService = roomService;
+		this.messagingTemplate = messagingTemplate;
+	}
 
-    @MessageMapping("/chat/{roomId}/join")
-    public ChatRoomUserListDto userJoinRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
+	@SubscribeMapping("/chat/roomList")
+	public List<SimpleRoomDto> roomList(String token) {
+		return roomService.roomList();
+	}
+
+	@MessageMapping("/chat/addRoom")
+	@SendTo("/chat/newRoom")
+	public SimpleRoomDto addRoom(NewRoomDto newRoom, String token) {
+		// TODO: check if the token is valid and belongs to an authenticated user with a
+		// file transfer uuid matching roomId
+		// call backend, get the username for the token and check against file transfer
+		// uuid. If it matches then allow adding room.
+
+		log.debug("Adding room");
+		return roomService.addRoom(newRoom.roomName);
+	}
+	
+	@MessageMapping("/chat/removeRoom")
+	@SendTo("/chat/removeRoom")
+	public void removeRoom(UserRoomKeyDto userRoomKey) {
+		// TODO: check if the token is valid and belongs to an authenticated user with a
+		// file transfer uuid matching roomId
+		// call backend, get the username for the token and check against file transfer
+		// uuid. If it matches then allow removing room.
+
+		log.debug("Removing room");
+		roomService.removeRoom(userRoomKey);
+	}
+
+	@MessageMapping("/chat/{roomId}/join")
+	public ChatRoomUserListDto userJoinRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
+		// TODO: check if the token, username and file transferuuid are valid and then
+		// allow the rest of the call goahead
+		// adding the user to room. Update the has in roomService with roomId and token
+
 //        with enabled spring security
 //        final String securityUser = headerAccessor.getUser().getName();
-        final String username = (String) headerAccessor.getSessionAttributes().put("username", userRoomKey.userName);
-        final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "");
-        return roomService.addUserToRoom(userRoomKey)
-                .map(userList -> {
-                    messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
-                    sendMessage(userRoomKey.roomKey, joinMessage);
-                    return userList;
-                })
-                .getOrElseGet(appError -> {
-                    log.error("invalid room id...");
-                    return new ChatRoomUserListDto(userRoomKey.roomKey, HashSet.empty());
-                });
-    }
+		final String username = (String) headerAccessor.getSessionAttributes().put("username", userRoomKey.userName);
+		final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "");
+		return roomService.addUserToRoom(userRoomKey).map(userList -> {
+			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
+			sendMessage(userRoomKey.roomKey, joinMessage, userRoomKey.token);
+			return userList;
+		}).getOrElseGet(appError -> {
+			log.error("invalid room id...");
+			return new ChatRoomUserListDto(userRoomKey.roomKey, HashSet.empty());
+		});
+	}
 
-    @MessageMapping("/chat/{roomId}/leave")
-    public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
-        final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKey.userName, "");
-        return roomService.removeUserFromRoom(userRoomKey)
-                .map(userList -> {
-                    messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
-                    sendMessage(userRoomKey.roomKey, leaveMessage);
-                    return userList;
-                })
-                .getOrElseGet(appError -> {
-                    log.error("invalid room id...");
-                    return new ChatRoomUserListDto(userRoomKey.roomKey, HashSet.empty());
-                });
-    }
+	@MessageMapping("/chat/{roomId}/leave")
+	public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
+		// TODO: check if the token, username and file transferuuid are valid and then
+		// allow the rest of the call remove the user from the room
 
-    @MessageMapping("chat/{roomId}/sendMessage")
-    public Message sendMessage(@DestinationVariable String roomId, Message message) {
-        messagingTemplate.convertAndSend(format("/chat/%s/messages", roomId), message);
-        return message;
-    }
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKey.userName, "");
+		return roomService.removeUserFromRoom(userRoomKey).map(userList -> {
+			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
+			sendMessage(userRoomKey.roomKey, leaveMessage, userRoomKey.token);
+			return userList;
+		}).getOrElseGet(appError -> {
+			log.error("invalid room id...");
+			return new ChatRoomUserListDto(userRoomKey.roomKey, HashSet.empty());
+		});
+	}
 
-    public void handleUserDisconnection(String userName) {
-        final User user = new User(userName);
-        final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "");
-        List<Room> userRooms = roomService.disconnectUser(user);
-        userRooms
-                .map(room -> new ChatRoomUserListDto(room.key, room.users))
-                .forEach(roomUserList -> {
-                    messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
-                    sendMessage(roomUserList.roomKey, leaveMessage);
-                });
-    }
+	@MessageMapping("chat/{roomId}/sendMessage")
+	public Message sendMessage(@DestinationVariable String roomId, Message message, String token) {
+		//TODO: check the map in roomservice to see if the token for the roomId exist, then allow continuing
+		messagingTemplate.convertAndSend(format("/chat/%s/messages", roomId), message);
+		return message;
+	}
+
+	public void handleUserDisconnection(String userName, String token) {
+		final User user = new User(userName, token);
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "");
+		List<Room> userRooms = roomService.disconnectUser(user);
+		userRooms.map(room -> new ChatRoomUserListDto(room.key, room.users)).forEach(roomUserList -> {
+			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
+			sendMessage(roomUserList.roomKey, leaveMessage, token);
+		});
+	}
 
 }
