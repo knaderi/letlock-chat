@@ -3,26 +3,21 @@ package com.landedexperts.letlock.chat.user;
 public class User {
 
     public final String name;
-    public final String token;
 
-    public User(String name, String token) {
-        this.name = name;
-        this.token = token;
-    }
     
     public User(String name) {
         this.name = name;
-        this.token = "";
     }
 
-    @Override
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((token == null) ? 0 : token.hashCode());
 		return result;
 	}
+
 
 	@Override
 	public boolean equals(Object obj) {
@@ -38,12 +33,9 @@ public class User {
 				return false;
 		} else if (!name.equals(other.name))
 			return false;
-		if (token == null) {
-			if (other.token != null)
-				return false;
-		} else if (!token.equals(other.token))
-			return false;
 		return true;
 	}
+
+
 
 }
