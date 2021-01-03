@@ -32,7 +32,7 @@ public class RoomService {
     }
     
     public void removeRoom(UserRoomKeyDto userRoomKey) {
-        final User user = new User(userRoomKey.userName, userRoomKey.token);
+        final User user = new User(userRoomKey.userName);
         this.roomList
                 .find(room -> room.key.equals(userRoomKey.roomKey))
                 .map(oldRoom -> {
@@ -51,7 +51,7 @@ public class RoomService {
     }
 
     public Either<AppError, ChatRoomUserListDto> addUserToRoom(UserRoomKeyDto userRoomKey) {
-        final User user = new User(userRoomKey.userName, userRoomKey.token);
+        final User user = new User(userRoomKey.userName);
         this.roomList
                 .find(room -> room.key.equals(userRoomKey.roomKey))
                 .map(oldRoom -> {
@@ -63,7 +63,7 @@ public class RoomService {
     }
 
     public Either<AppError, ChatRoomUserListDto> removeUserFromRoom(UserRoomKeyDto userRoomKey) {
-        final User user = new User(userRoomKey.userName, userRoomKey.token);
+        final User user = new User(userRoomKey.userName);
         this.roomList
                 .find(room -> room.key.equals(userRoomKey.roomKey))
                 .map(oldRoom -> {

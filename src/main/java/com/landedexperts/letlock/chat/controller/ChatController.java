@@ -114,9 +114,9 @@ public class ChatController {
 		return message;
 	}
 
-	public void handleUserDisconnection(String userName, String token) {
-		final User user = new User(userName, token);
-		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "", token);
+	public void handleUserDisconnection(String userName) {
+		final User user = new User(userName);
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "", "");
 		List<Room> userRooms = roomService.disconnectUser(user);
 		userRooms.map(room -> new ChatRoomUserListDto(room.key, room.users)).forEach(roomUserList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);

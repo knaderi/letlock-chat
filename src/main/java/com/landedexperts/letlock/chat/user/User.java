@@ -9,6 +9,11 @@ public class User {
         this.name = name;
         this.token = token;
     }
+    
+    public User(String name) {
+        this.name = name;
+        this.token = "";
+    }
 
     @Override
 	public int hashCode() {
