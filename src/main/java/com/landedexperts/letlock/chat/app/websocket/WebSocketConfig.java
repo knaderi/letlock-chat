@@ -47,8 +47,8 @@ class MyChannelInterceptor extends ChannelInterceptorAdapter {
         accessor.getNativeHeader("token");
         StompCommand command = accessor.getCommand();
         if (StompCommand.CONNECT.equals(command)) {
-            Principal user = null ; // access authentication header(s) replace thsi w
-            accessor.setUser(user);
+//            Principal user = null ; // access authentication header(s) replace this w
+//            accessor.setUser(user);
         }
         return message;
     }
