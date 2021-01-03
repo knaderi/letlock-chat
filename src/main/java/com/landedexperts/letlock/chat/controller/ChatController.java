@@ -49,7 +49,7 @@ public class ChatController {
 
 	@MessageMapping("/chat/addRoom")
 	@SendTo("/chat/newRoom")
-	public SimpleRoomDto addRoom(NewRoomDto newRoom, String token) {
+	public SimpleRoomDto addRoom(NewRoomDto newRoom) {
 		// TODO: check if the token is valid and belongs to an authenticated user with a
 		// file transfer uuid matching roomId
 		// call backend, get the username for the token and check against file transfer
