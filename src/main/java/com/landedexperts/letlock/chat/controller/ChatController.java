@@ -80,10 +80,10 @@ public class ChatController {
 //        with enabled spring security
 //        final String securityUser = headerAccessor.getUser().getName();
 		final String username = (String) headerAccessor.getSessionAttributes().put("username", userRoomKey.userName);
-		final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "");
+		final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "", "");
 		return roomService.addUserToRoom(userRoomKey).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
-			sendMessage(userRoomKey.roomKey, joinMessage);
+			sendMessage(userRoomKey.roomKey, joinMessage, userRoomKey.token);
 			return userList;
 		}).getOrElseGet(appError -> {
 			log.error("invalid room id...");
@@ -96,10 +96,10 @@ public class ChatController {
 		// TODO: check if the token, username and file transferuuid are valid and then
 		// allow the rest of the call remove the user from the room
 
-		final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKey.userName, "");
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKey.userName, "", "");
 		return roomService.removeUserFromRoom(userRoomKey).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
-			sendMessage(userRoomKey.roomKey, leaveMessage);
+			sendMessage(userRoomKey.roomKey, leaveMessage, userRoomKey.token);
 			return userList;
 		}).getOrElseGet(appError -> {
 			log.error("invalid room id...");
@@ -108,7 +108,7 @@ public class ChatController {
 	}
 
 	@MessageMapping("chat/{roomId}/sendMessage")
-	public Message sendMessage(@DestinationVariable String roomId, Message message) {
+	public Message sendMessage(@DestinationVariable String roomId, Message message, String token) {
 		//TODO: check the map in roomservice to see if the token for the roomId exist, then allow continuing
 		messagingTemplate.convertAndSend(format("/chat/%s/messages", roomId), message);
 		return message;
@@ -116,11 +116,11 @@ public class ChatController {
 
 	public void handleUserDisconnection(String userName) {
 		final User user = new User(userName);
-		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "");
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "", "");
 		List<Room> userRooms = roomService.disconnectUser(user);
 		userRooms.map(room -> new ChatRoomUserListDto(room.key, room.users)).forEach(roomUserList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
-			sendMessage(roomUserList.roomKey, leaveMessage);
+			sendMessage(roomUserList.roomKey, leaveMessage, "");
 		});
 	}
 
