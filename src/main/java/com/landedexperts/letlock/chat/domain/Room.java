@@ -8,7 +8,7 @@ import io.vavr.collection.Set;
 
 public class Room {
 
-    public final String name;
+	public final String name;
     public final String key;
     public final Set<User> users;
 
@@ -41,4 +41,9 @@ public class Room {
     private String generateKey(String roomName) {
         return roomName.toLowerCase().trim().replaceAll("\\s+", "-");
     }
+    
+    @Override
+	public String toString() {
+		return "Room [name=" + name + ", key=" + key + ", users=" + users + "]";
+	}
 }

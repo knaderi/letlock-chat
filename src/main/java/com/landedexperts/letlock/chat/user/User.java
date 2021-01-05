@@ -2,7 +2,7 @@ package com.landedexperts.letlock.chat.user;
 
 public class User {
 
-    public final String name;
+	public final String name;
 
     
     public User(String name) {
@@ -10,6 +10,12 @@ public class User {
     }
 
 
+    @Override
+	public String toString() {
+		return "User [name=" + name + "]";
+	}
+
+    
 	@Override
 	public int hashCode() {
 		final int prime = 31;

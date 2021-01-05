@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.landedexperts.letlock.chat.domain.Room;
 import com.landedexperts.letlock.chat.dto.ChatRoomUserListDto;
@@ -31,6 +32,7 @@ public class ChatController {
 
 	@Value("${letlock.filetransfer.backend.login.url}")
 	private String writeTimeOut;
+	
 
 	private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
@@ -41,6 +43,7 @@ public class ChatController {
 		this.roomService = roomService;
 		this.messagingTemplate = messagingTemplate;
 	}
+
 
 	@SubscribeMapping("/chat/roomList")
 	public List<SimpleRoomDto> roomList() {
@@ -56,7 +59,7 @@ public class ChatController {
 		// uuid. If it matches then allow adding room.
 
 		log.debug("Adding room");
-		return roomService.addRoom(newRoom.roomName);
+		return roomService.addRoom(newRoom.roomName); //returns where subscribed for the SimpleRoomDto is false. It doesn oty reurn Room as it does not need the list of users.
 	}
 	
 	@MessageMapping("/chat/removeRoom")
@@ -68,7 +71,7 @@ public class ChatController {
 		// uuid. If it matches then allow removing room.
 
 		log.debug("Removing room");
-		roomService.removeRoom(userRoomKey);
+		roomService.removeRoom(userRoomKey.roomKey);
 	}
 
 	@MessageMapping("/chat/{roomId}/join")
@@ -80,7 +83,7 @@ public class ChatController {
 //        with enabled spring security
 //        final String securityUser = headerAccessor.getUser().getName();
 		final String username = (String) headerAccessor.getSessionAttributes().put("username", userRoomKey.userName);
-		final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "", "");
+		final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "user joined", userRoomKey.token);
 		return roomService.addUserToRoom(userRoomKey).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
 			sendMessage(userRoomKey.roomKey, joinMessage, userRoomKey.token);
@@ -92,18 +95,18 @@ public class ChatController {
 	}
 
 	@MessageMapping("/chat/{roomId}/leave")
-	public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
+	public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKeyDto, SimpMessageHeaderAccessor headerAccessor) {
 		// TODO: check if the token, username and file transferuuid are valid and then
 		// allow the rest of the call remove the user from the room
 
-		final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKey.userName, "", "");
-		return roomService.removeUserFromRoom(userRoomKey).map(userList -> {
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKeyDto.userName, "", "");
+		return roomService.removeUserFromRoom(userRoomKeyDto).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
-			sendMessage(userRoomKey.roomKey, leaveMessage, userRoomKey.token);
+			sendMessage(userRoomKeyDto.roomKey, leaveMessage, userRoomKeyDto.token);
 			return userList;
 		}).getOrElseGet(appError -> {
 			log.error("invalid room id...");
-			return new ChatRoomUserListDto(userRoomKey.roomKey, HashSet.empty());
+			return new ChatRoomUserListDto(userRoomKeyDto.roomKey, HashSet.empty());
 		});
 	}
 

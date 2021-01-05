@@ -4,7 +4,12 @@ import java.util.Objects;
 
 public class SimpleRoomDto {
 
-    public final String name, key;
+    @Override
+	public String toString() {
+		return "SimpleRoomDto [name=" + name + ", key=" + key + ", subscribed=" + subscribed + "]";
+	}
+
+	public final String name, key;
     public final boolean subscribed;
 
     public SimpleRoomDto(String name, String key) {
