@@ -89,8 +89,13 @@ public class RoomService {
 		return this.roomList;
 	}
 
-	private synchronized List<Room> addRoom(Room room) {
-		return this.roomList = this.roomList.append(room);
+	private synchronized List<Room> addRoom(Room roomToAdd) {
+		List<Room> ifExist = roomList.toJavaParallelStream().filter(room -> room.key.equals(roomToAdd.key)).collect(List.collector());
+		if(ifExist.size() == 0) {
+		    return this.roomList = this.roomList.append(roomToAdd);
+		}else {
+			return this.roomList;
+		}
 	}
 
 	private synchronized List<Room> remove(String roomName) {
