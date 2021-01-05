@@ -13,6 +13,7 @@ import com.landedexperts.letlock.chat.dto.UserRoomKeyDto;
 import com.landedexperts.letlock.chat.user.User;
 
 import io.vavr.collection.List;
+import io.vavr.collection.Set;
 import io.vavr.control.Either;
 
 @Service
@@ -51,6 +52,13 @@ public class RoomService {
 			return newRoom;
 		});
 		return usersInChatRoom(userRoomKey.roomKey);
+	}
+	
+	public Set<User> getUserList(String roomKey) {
+
+		Room theRoom = this.roomList.find(room -> room.key.equals(roomKey)).collect(List.collector()).get();
+
+		return theRoom.users;
 	}
 
 	public Either<AppError, ChatRoomUserListDto> removeUserFromRoom(UserRoomKeyDto userRoomKey) {
