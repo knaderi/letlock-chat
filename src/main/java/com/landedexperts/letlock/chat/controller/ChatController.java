@@ -90,23 +90,6 @@ public class ChatController {
 		return roomService.addRoom(newRoom.roomName); //returns where subscribed for the SimpleRoomDto is false. It doesn oty reurn Room as it does not need the list of users.
 	}
 	
-	@MessageMapping("/removeRoom")
-	@SendTo("/chat/removeRoom")
-	/**
-	 * Convert messages that are headed to /app/removeRoom and convert it to a new chatMessage
-	 * and send it to "/chat/removeRoom", so all subscribers  for "/chat/removeRoom" will 
-	 * receiver the message.
-	 * @param userRoomKey
-	 */
-	public void removeRoom(UserRoomKeyDto userRoomKey) {
-		// TODO: check if the token is valid and belongs to an authenticated user with a
-		// file transfer uuid matching roomId
-		// call backend, get the username for the token and check against file transfer
-		// uuid. If it matches then allow removing room.
-
-		log.debug("Removing room");
-		roomService.removeRoom(userRoomKey.roomKey);
-	}
 
 	@MessageMapping("/chat/{roomId}/join")
 	public ChatRoomUserListDto userJoinRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
@@ -116,6 +99,7 @@ public class ChatController {
 
 //        with enabled spring security
 //        final String securityUser = headerAccessor.getUser().getName();
+		 System.out.println("authetication token at join is" + userRoomKey.token);
 		if(!roomService.roomExist(userRoomKey)) {
 			roomService.addRoom(userRoomKey.roomKey);
 		}
@@ -136,7 +120,7 @@ public class ChatController {
 	public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKeyDto, SimpMessageHeaderAccessor headerAccessor) {
 		// TODO: check if the token, username and file transferuuid are valid and then
 		// allow the rest of the call remove the user from the room
-
+        System.out.println("authetication token is" + userRoomKeyDto.token);
 		final Message leaveMessage = new Message(MessageTypes.LEAVE, userRoomKeyDto.userName, "user left", userRoomKeyDto.token);
 		return roomService.removeUserFromRoom(userRoomKeyDto).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
@@ -148,8 +132,8 @@ public class ChatController {
 		});
 	}
 	
-	@SubscribeMapping("/chat/{roomId}/userList")
 	@MessageMapping("/chat/{roomId}/userList")
+	@SendTo("/chat/{roomId}/userList")
 	public Set<User> userList(@DestinationVariable String roomId, Message message) {
 		// TODO: check if the token, username and file transferuuid are valid and then
 		// allow the rest of the call goahead
@@ -157,7 +141,7 @@ public class ChatController {
 
 //        with enabled spring security
 //        final String securityUser = headerAccessor.getUser().getName();
-		
+
 		return roomService.getUserList(roomId);
 	}
 
@@ -169,6 +153,8 @@ public class ChatController {
 		messagingTemplate.convertAndSend(format("/chat/%s/messages", roomId), message);
 		return message;
 	}
+	
+
 
 	public void handleUserDisconnection(String userName) {
 		final User user = new User(userName);
@@ -177,6 +163,7 @@ public class ChatController {
 		userRooms.map(room -> new ChatRoomUserListDto(room.key, room.users)).forEach(roomUserList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
 			sendMessage(roomUserList.roomKey, leaveMessage);
+			messagingTemplate.convertAndSend(format("/chat/{userName}/roomList", userName), userRooms);	
 		});
 		//Remove user's empty rooms
 		userRooms.toStream()
