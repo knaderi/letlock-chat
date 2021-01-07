@@ -1,8 +1,5 @@
 package com.landedexperts.letlock.chat.service;
 
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.springframework.stereotype.Service;
 
 import com.landedexperts.letlock.chat.app.AppError;
@@ -25,8 +22,8 @@ public class RoomService {
 		this.roomList = List.of(defaultRoom());
 	}
 
-	public List<SimpleRoomDto> roomList() {
-		return getRoomList().map(room -> room.asSimpleRoomDto());
+	public List<SimpleRoomDto> roomList(String userName) {
+		return getRoomList(userName).map(room -> room.asSimpleRoomDto());
 	}
 
 	public SimpleRoomDto addRoom(String roomName) {
@@ -39,8 +36,13 @@ public class RoomService {
 		this.roomList = remove(roomName);
 	}
 
+	public Either<AppError, ChatRoomUserListDto> usersInChatRoom(String roomKey, String userName) {
+		return getRoomList(userName).find(room -> room.key.equals(roomKey))
+				.map(room -> new ChatRoomUserListDto(room.key, room.users)).toEither(AppError.INVALID_ROOM_KEY);
+	}
+	
 	public Either<AppError, ChatRoomUserListDto> usersInChatRoom(String roomKey) {
-		return getRoomList().find(room -> room.key.equals(roomKey))
+		return this.roomList.find(room -> room.key.equals(roomKey))
 				.map(room -> new ChatRoomUserListDto(room.key, room.users)).toEither(AppError.INVALID_ROOM_KEY);
 	}
 
@@ -51,7 +53,7 @@ public class RoomService {
 			updateRoom(oldRoom, newRoom);
 			return newRoom;
 		});
-		return usersInChatRoom(userRoomKey.roomKey);
+		return usersInChatRoom(userRoomKey.roomKey, userRoomKey.userName);
 	}
 	
 	public Set<User> getUserList(String roomKey) {
@@ -85,8 +87,10 @@ public class RoomService {
 		return new Room("Main room");
 	}
 
-	private synchronized List<Room> getRoomList() {
-		return this.roomList;
+	private synchronized List<Room> getRoomList(String userName) {
+		User user = new User(userName);
+		List<Room> userRooms = roomList.filter(room -> room.users.contains(user));
+		return userRooms;
 	}
 
 	private synchronized List<Room> addRoom(Room roomToAdd) {
@@ -105,5 +109,10 @@ public class RoomService {
 
 	private synchronized List<Room> updateRoom(Room oldRoom, Room newRoom) {
 		return this.roomList = this.roomList.remove(oldRoom).append(newRoom);
+	}
+
+	public boolean roomExist(UserRoomKeyDto userRoomKey) {
+		return roomList.exists(room->room.key.equals(userRoomKey.roomKey));
+		
 	}
 }

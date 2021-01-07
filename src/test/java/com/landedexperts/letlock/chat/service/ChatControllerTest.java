@@ -2,15 +2,27 @@ package com.landedexperts.letlock.chat.service;
 
 import static java.lang.String.format;
 
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.util.Set;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
+import com.google.gson.Gson;
 import com.landedexperts.letlock.chat.dto.ChatRoomUserListDto;
+import com.landedexperts.letlock.chat.dto.SetResponse;
 import com.landedexperts.letlock.chat.dto.UserRoomKeyDto;
 import com.landedexperts.letlock.chat.message.Message;
 import com.landedexperts.letlock.chat.message.MessageTypes;
@@ -89,5 +101,23 @@ public class ChatControllerTest {
 		messagingTemplate.convertAndSend(format("/chat/%s/messages", roomId), message);
 		return message;
 	}
+	
+	@Test
+    public void testGetChatRoomNames()
+            throws Exception, UnsupportedEncodingException {
+    	
+    	Client client = ClientBuilder.newClient();
+
+        WebTarget target = client.target("http://localhost:5000/get_user_chatroom_names")
+           .queryParam("token", "asdasdasdasd")
+           .queryParam("mode", "json");
+        
+        Response response =  target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+        Assert.assertEquals(response.getStatus(), HttpURLConnection.HTTP_OK);
+        String replyString = response.readEntity(String.class);
+        SetResponse<Set<String>> responseObject = new Gson().fromJson(replyString, SetResponse.class);
+        Assert.assertEquals(responseObject.getReturnCode(),"TOKEN_INVALID");
+    	
+    }
 
 }

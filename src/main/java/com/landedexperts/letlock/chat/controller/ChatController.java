@@ -2,9 +2,18 @@ package com.landedexperts.letlock.chat.controller;
 
 import static java.lang.String.format;
 
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -13,9 +22,11 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.stereotype.Controller;
 
+import com.google.gson.Gson;
 import com.landedexperts.letlock.chat.domain.Room;
 import com.landedexperts.letlock.chat.dto.ChatRoomUserListDto;
 import com.landedexperts.letlock.chat.dto.NewRoomDto;
+import com.landedexperts.letlock.chat.dto.SetResponse;
 import com.landedexperts.letlock.chat.dto.SimpleRoomDto;
 import com.landedexperts.letlock.chat.dto.UserRoomKeyDto;
 import com.landedexperts.letlock.chat.message.Message;
@@ -27,6 +38,18 @@ import io.vavr.collection.HashSet;
 import io.vavr.collection.List;
 import io.vavr.collection.Set;
 
+/**
+* our chat front-end is subscribing to:
+* '/chat/${username}/userList'
+* '/chat/newRoom' - checked
+* `/chat/${roomKey}/messages`
+* /chat/${roomKey}/userList
+* 
+* It sends messages to:
+* /app/chat/addRoom
+* /app/chat/${roomKey}/join
+* /app/chat/${roomKey}/leave
+**/
 @Controller
 public class ChatController {
 
@@ -45,25 +68,36 @@ public class ChatController {
 	}
 
 
-	@SubscribeMapping("/chat/roomList")
-	public List<SimpleRoomDto> roomList() {
-		return roomService.roomList();
+	@SubscribeMapping("/chat/{userName}/roomList")
+	public List<SimpleRoomDto> roomList(@DestinationVariable String userName) {
+		return roomService.roomList(userName);
 	}
 
 	@MessageMapping("/chat/addRoom")
 	@SendTo("/chat/newRoom")
+	/**
+	 * Convert messages that are headed to /app/addRoom and convert it to a new chatMessage
+	 * and send it to "/chat/newRoom", so all subscribers  for "/chat/newRoom" will 
+	 * receiver the message.
+	 * @param newRoom
+	 * @return
+	 */
 	public SimpleRoomDto addRoom(NewRoomDto newRoom) {
 		// TODO: check if the token is valid and belongs to an authenticated user with a
 		// file transfer uuid matching roomId
 		// call backend, get the username for the token and check against file transfer
 		// uuid. If it matches then allow adding room.
-
-		log.debug("Adding room");
 		return roomService.addRoom(newRoom.roomName); //returns where subscribed for the SimpleRoomDto is false. It doesn oty reurn Room as it does not need the list of users.
 	}
 	
-	@MessageMapping("/chat/removeRoom")
+	@MessageMapping("/removeRoom")
 	@SendTo("/chat/removeRoom")
+	/**
+	 * Convert messages that are headed to /app/removeRoom and convert it to a new chatMessage
+	 * and send it to "/chat/removeRoom", so all subscribers  for "/chat/removeRoom" will 
+	 * receiver the message.
+	 * @param userRoomKey
+	 */
 	public void removeRoom(UserRoomKeyDto userRoomKey) {
 		// TODO: check if the token is valid and belongs to an authenticated user with a
 		// file transfer uuid matching roomId
@@ -82,6 +116,9 @@ public class ChatController {
 
 //        with enabled spring security
 //        final String securityUser = headerAccessor.getUser().getName();
+		if(!roomService.roomExist(userRoomKey)) {
+			roomService.addRoom(userRoomKey.roomKey);
+		}
 		final String username = (String) headerAccessor.getSessionAttributes().put("username", userRoomKey.userName);
 		final Message joinMessage = new Message(MessageTypes.JOIN, userRoomKey.userName, "user joined", userRoomKey.token);
 		return roomService.addUserToRoom(userRoomKey).map(userList -> {
@@ -108,6 +145,7 @@ public class ChatController {
 	}
 
 	@MessageMapping("/chat/{roomId}/leave")
+	//TODO: shouldn't we have @DestinationVariable String roomId to use it.
 	public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKeyDto, SimpMessageHeaderAccessor headerAccessor) {
 		// TODO: check if the token, username and file transferuuid are valid and then
 		// allow the rest of the call remove the user from the room
@@ -123,7 +161,7 @@ public class ChatController {
 		});
 	}
 
-	@MessageMapping("chat/{roomId}/sendMessage")
+	@MessageMapping("/chat/{roomId}/sendMessage")
 	public Message sendMessage(@DestinationVariable String roomId, Message message) {
 		//TODO: check the map in roomservice to see if the token for the roomId exist, then allow continuing
 		messagingTemplate.convertAndSend(format("/chat/%s/messages", roomId), message);
@@ -138,6 +176,32 @@ public class ChatController {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
 			sendMessage(roomUserList.roomKey, leaveMessage);
 		});
+		//Remove user's empty rooms
+		userRooms.toStream()
+	    .filter(room -> room.users.isEmpty())
+	    .forEach(emptyRoom -> roomService.removeRoom(emptyRoom.name));
 	}
+	
+    public java.util.Set<String> getUserChatRooms()
+            throws Exception, UnsupportedEncodingException {
+    	
+    	Client client = ClientBuilder.newClient();
+
+        WebTarget target = client.target("http://localhost:5000/get_user_chatroom_names")
+           .queryParam("token", "asdasdasdasd")
+           .queryParam("mode", "json");
+        
+        Response response =  target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+        if(response.getStatus() != HttpURLConnection.HTTP_OK) {
+        	
+        }else {
+        	String replyString = response.readEntity(String.class);
+        }
+
+        String replyString = response.readEntity(String.class);
+        SetResponse<String> responseObject = new Gson().fromJson(replyString, SetResponse.class);
+        return responseObject.getResult();
+    	
+    }
 
 }
