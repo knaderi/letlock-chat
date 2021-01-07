@@ -22,13 +22,13 @@ public class ChatServiceTest {
 		roomService.addRoom("testroom");
 		UserRoomKeyDto newuserRoomDTO = new UserRoomKeyDto("testroom", "testUser", "token");
 		roomService.addUserToRoom(newuserRoomDTO);
-		Assert.assertTrue(roomService.usersInChatRoom("testroom", "testUser").isRight());
+		Assert.assertTrue(roomService.usersInChatRoom("testroom").isRight());
 		Set<User> users = roomService.getUserList("testroom");
 		Assert.assertTrue(users.size() ==1);
 		
 		UserRoomKeyDto newuserRoomDTO2 = new UserRoomKeyDto("testroom", "testUser2", "token2"); 
 		roomService.addUserToRoom(newuserRoomDTO2);
-		Assert.assertTrue(roomService.usersInChatRoom("testroom", "testUser2").isRight());
+		Assert.assertTrue(roomService.usersInChatRoom("testroom").isRight());
 		users = roomService.getUserList("testroom");
 		Assert.assertTrue(users.size() ==2);
 

@@ -36,10 +36,6 @@ public class RoomService {
 		this.roomList = remove(roomName);
 	}
 
-	public Either<AppError, ChatRoomUserListDto> usersInChatRoom(String roomKey, String userName) {
-		return getRoomList(userName).find(room -> room.key.equals(roomKey))
-				.map(room -> new ChatRoomUserListDto(room.key, room.users)).toEither(AppError.INVALID_ROOM_KEY);
-	}
 	
 	public Either<AppError, ChatRoomUserListDto> usersInChatRoom(String roomKey) {
 		return this.roomList.find(room -> room.key.equals(roomKey))
@@ -53,7 +49,7 @@ public class RoomService {
 			updateRoom(oldRoom, newRoom);
 			return newRoom;
 		});
-		return usersInChatRoom(userRoomKey.roomKey, userRoomKey.userName);
+		return usersInChatRoom(userRoomKey.roomKey);
 	}
 	
 	public Set<User> getUserList(String roomKey) {

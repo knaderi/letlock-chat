@@ -102,22 +102,22 @@ public class ChatControllerTest {
 		return message;
 	}
 	
-	@Test
-    public void testGetChatRoomNames()
-            throws Exception, UnsupportedEncodingException {
-    	
-    	Client client = ClientBuilder.newClient();
-
-        WebTarget target = client.target("http://localhost:5000/get_user_chatroom_names")
-           .queryParam("token", "asdasdasdasd")
-           .queryParam("mode", "json");
-        
-        Response response =  target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
-        Assert.assertEquals(response.getStatus(), HttpURLConnection.HTTP_OK);
-        String replyString = response.readEntity(String.class);
-        SetResponse<Set<String>> responseObject = new Gson().fromJson(replyString, SetResponse.class);
-        Assert.assertEquals(responseObject.getReturnCode(),"TOKEN_INVALID");
-    	
-    }
+//	@Test
+//    public void testGetChatRoomNames()
+//            throws Exception, UnsupportedEncodingException {
+//    	
+//    	Client client = ClientBuilder.newClient();
+//
+//        WebTarget target = client.target("http://localhost:5000/get_user_chatroom_names")
+//           .queryParam("token", "asdasdasdasd")
+//           .queryParam("mode", "json");
+//        
+//        Response response =  target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+//        Assert.assertEquals(response.getStatus(), HttpURLConnection.HTTP_OK);
+//        String replyString = response.readEntity(String.class);
+//        SetResponse<Set<String>> responseObject = new Gson().fromJson(replyString, SetResponse.class);
+//        Assert.assertEquals(responseObject.getReturnCode(),"TOKEN_INVALID");
+//    	
+//    }
 
 }

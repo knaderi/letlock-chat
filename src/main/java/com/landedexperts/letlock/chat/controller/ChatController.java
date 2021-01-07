@@ -131,19 +131,6 @@ public class ChatController {
 		});
 	}
 	
-	@SubscribeMapping("/chat/{roomId}/userList")
-	@MessageMapping("/chat/{roomId}/userList")
-	public Set<User> userList(@DestinationVariable String roomId, Message message) {
-		// TODO: check if the token, username and file transferuuid are valid and then
-		// allow the rest of the call goahead
-		// adding the user to room. Update the has in roomService with roomId and token
-
-//        with enabled spring security
-//        final String securityUser = headerAccessor.getUser().getName();
-		
-		return roomService.getUserList(roomId);
-	}
-
 	@MessageMapping("/chat/{roomId}/leave")
 	//TODO: shouldn't we have @DestinationVariable String roomId to use it.
 	public ChatRoomUserListDto userLeaveRoom(UserRoomKeyDto userRoomKeyDto, SimpMessageHeaderAccessor headerAccessor) {
@@ -160,6 +147,21 @@ public class ChatController {
 			return new ChatRoomUserListDto(userRoomKeyDto.roomKey, HashSet.empty());
 		});
 	}
+	
+	@SubscribeMapping("/chat/{roomId}/userList")
+	@MessageMapping("/chat/{roomId}/userList")
+	public Set<User> userList(@DestinationVariable String roomId, Message message) {
+		// TODO: check if the token, username and file transferuuid are valid and then
+		// allow the rest of the call goahead
+		// adding the user to room. Update the has in roomService with roomId and token
+
+//        with enabled spring security
+//        final String securityUser = headerAccessor.getUser().getName();
+		
+		return roomService.getUserList(roomId);
+	}
+
+
 
 	@MessageMapping("/chat/{roomId}/sendMessage")
 	public Message sendMessage(@DestinationVariable String roomId, Message message) {
