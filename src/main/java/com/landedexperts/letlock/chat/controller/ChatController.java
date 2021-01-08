@@ -33,7 +33,7 @@ import io.vavr.collection.Set;
 public class ChatController {
 
 	//@Value("${letlock.filetransfer.backend.login.url}")
-	private String letlockBackendURI = "http://letlockbackenddev.us-west-2.elasticbeanstalk.com:5000";
+	private String letlockBackendURI = "http://localhost:5000";
 	
 
 	private static final Logger log = LoggerFactory.getLogger(ChatController.class);
@@ -45,7 +45,6 @@ public class ChatController {
 		this.roomService = roomService;
 		this.messagingTemplate = messagingTemplate;
 	}
-
 	@SubscribeMapping("/chat/{userName}/roomList")
 	public List<SimpleRoomDto> roomList(@DestinationVariable String userName) {
 		return roomService.roomList(userName);
@@ -72,9 +71,10 @@ public class ChatController {
 		if (!roomService.roomExist(userRoomKey)) {
 			roomService.addRoom(userRoomKey.roomKey);
 		}
+		
 		boolean isUserAuthenticatedForRoom = LetLockBackendHelper.getInstance(letlockBackendURI).authenticateForRoom(userRoomKey.token,
 				userRoomKey.roomKey);
-		if (isUserAuthenticatedForRoom) {
+		if (!isUserAuthenticatedForRoom) {
 			log.error("User is not authenticated for the room.");
 			return new ChatRoomUserListDto(userRoomKey.roomKey, HashSet.empty());
 		}

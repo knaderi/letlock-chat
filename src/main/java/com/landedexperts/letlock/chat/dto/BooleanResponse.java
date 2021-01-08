@@ -6,39 +6,16 @@
  ******************************************************************************/
 package com.landedexperts.letlock.chat.dto;
 
-public class BooleanResponse {
-	
+public class BooleanResponse extends ReturnCodeMessageResponse {
 
-    private ResultObject result = new ResultObject();
-	private String returnCode = "SUCCESS";
-
-	private String returnMessage = "";
-
-    public String getReturnMessage() {
-		return returnMessage;
-	}
-
-
-	public void setReturnMessage(String returnMessage) {
-		this.returnMessage = returnMessage;
-	}
-
-
-	public BooleanResponse(boolean resultValue, String returnCode, String returnMessage) {
+    public BooleanResponse(boolean resultValue, String returnCode, String returnMessage) {
+        super(returnCode, returnMessage);
         setValue(resultValue);
-        this.returnCode = returnCode;
-        this.returnMessage = returnMessage;
     }
 
+    private ResultObject result = new ResultObject();
 
-	public String getReturnCode() {
-		return returnCode;
-	}
 
-	public void setReturnCode(String returnCode) {
-		this.returnCode = returnCode;
-	}
-	
     public ResultObject getResult() {
         return result;
     }

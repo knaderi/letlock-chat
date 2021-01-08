@@ -14,6 +14,10 @@ public class SetResponse<T> {
 	@JsonProperty
 	private Set<T> result;
 
+	public void setResult(Set<T> result) {
+		this.result = result;
+	}
+
 	public String getReturnCode() {
 		return this.returnCode;
 	}

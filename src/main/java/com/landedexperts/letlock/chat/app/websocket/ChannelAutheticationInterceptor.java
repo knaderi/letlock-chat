@@ -17,8 +17,8 @@ import com.landedexperts.letlock.chat.service.LetLockBackendHelper;
 public class ChannelAutheticationInterceptor implements ChannelInterceptor {
 
 //	@Value("${letlock.filetransfer.backend.login.url}")
-	private String letlockBackendURI = "http://letlockbackenddev.us-west-2.elasticbeanstalk.com:5000";
-
+	//private String letlockBackendURI = "http://letlockbackenddev.us-west-2.elasticbeanstalk.com:5000";
+	private  String letLockBackendURI = "http://localhost:5000";
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
@@ -26,7 +26,7 @@ public class ChannelAutheticationInterceptor implements ChannelInterceptor {
 		String token = nativeHeader != null ? nativeHeader.get(0) : "MISSING_TOKEN";
 		StompCommand command = accessor.getCommand();
 		if (StompCommand.CONNECT.equals(command)) {
-			if (!LetLockBackendHelper.getInstance(letlockBackendURI).authenticate(token)) {
+			if (!LetLockBackendHelper.getInstance(letLockBackendURI).authenticate(token)) {
 				throw new RuntimeException("Authetication failed");
 			}
 
