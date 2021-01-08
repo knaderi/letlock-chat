@@ -33,15 +33,13 @@ public class LetLockBackendHelper {
 		this.letLockBackendURI = letLockBackendURI;
 	}
 
-	@Value("${letlock.filetransfer.backend.login.url}")
-    private String letlockBakendURI;
-	
+
 
 	public Boolean authenticate(String token) {
 
 		Client client = ClientBuilder.newClient();
 
-		WebTarget target = client.target(this.letlockBakendURI + "/authenticate").queryParam("token", token)
+		WebTarget target = client.target(letLockBackendURI + "/authenticate").queryParam("token", token)
 				.queryParam("mode", "json");
 
 		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
@@ -59,8 +57,8 @@ public class LetLockBackendHelper {
 
 		Client client = ClientBuilder.newClient();
 
-		WebTarget target = client.target(letlockBakendURI + "/autheticate_for_chat_room").queryParam("token", token)
-				.queryParam("mode", "json");
+		WebTarget target = client.target(letLockBackendURI + "/autheticate_for_chat_room").queryParam("token", token)
+				.queryParam("roomKey", roomKey);
 
 		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {

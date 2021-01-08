@@ -26,7 +26,7 @@ public class ChannelAutheticationInterceptor implements ChannelInterceptor {
 		String token = nativeHeader != null ? nativeHeader.get(0) : "MISSING_TOKEN";
 		StompCommand command = accessor.getCommand();
 		if (StompCommand.CONNECT.equals(command)) {
-			if (LetLockBackendHelper.getInstance(letlockBackendURI).authenticate(token)) {
+			if (!LetLockBackendHelper.getInstance(letlockBackendURI).authenticate(token)) {
 				throw new RuntimeException("Authetication failed");
 			}
 
