@@ -21,7 +21,7 @@ import com.landedexperts.letlock.chat.dto.SimpleRoomDto;
 import com.landedexperts.letlock.chat.dto.UserRoomKeyDto;
 import com.landedexperts.letlock.chat.message.Message;
 import com.landedexperts.letlock.chat.message.MessageTypes;
-import com.landedexperts.letlock.chat.service.LetLockBackendHelper;
+import com.landedexperts.letlock.chat.service.LetLockBackendServiceFacade;
 import com.landedexperts.letlock.chat.service.RoomService;
 import com.landedexperts.letlock.chat.user.User;
 
@@ -32,8 +32,8 @@ import io.vavr.collection.Set;
 @Controller
 public class ChatController {
 
-	//@Value("${letlock.filetransfer.backend.login.url}")
-	private String letlockBackendURI = "http://localhost:5000";
+	@Autowired
+	LetLockBackendServiceFacade letlockBackendHelper;
 	
 
 	private static final Logger log = LoggerFactory.getLogger(ChatController.class);
@@ -72,7 +72,7 @@ public class ChatController {
 			roomService.addRoom(userRoomKey.roomKey);
 		}
 		
-		boolean isUserAuthenticatedForRoom = LetLockBackendHelper.getInstance(letlockBackendURI).authenticateForRoom(userRoomKey.token,
+		boolean isUserAuthenticatedForRoom = letlockBackendHelper.authenticateForRoom(userRoomKey.token,
 				userRoomKey.roomKey);
 		if (!isUserAuthenticatedForRoom) {
 			log.error("User is not authenticated for the room.");

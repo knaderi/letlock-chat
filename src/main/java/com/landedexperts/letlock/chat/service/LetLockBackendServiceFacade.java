@@ -9,31 +9,21 @@ import javax.ws.rs.core.Response;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 
 import com.google.gson.Gson;
 import com.landedexperts.letlock.chat.dto.BooleanResponse;
-import com.landedexperts.letlock.chat.dto.SetResponse;
 
+public class LetLockBackendServiceFacade {
+	private final Logger logger = LoggerFactory.getLogger(LetLockBackendServiceFacade.class);
 
-public class LetLockBackendHelper {
-	private final Logger logger = LoggerFactory.getLogger(LetLockBackendHelper.class);
-	
-	private static LetLockBackendHelper instance = null;
-	//private  String letLockBackendURI = "http://letlockbackenddev.us-west-2.elasticbeanstalk.com:5000";
-	private  String letLockBackendURI = "http://localhost:5000";
-	public static LetLockBackendHelper getInstance(String letLockBackendURI) {
-		if(instance == null) {
-			instance = new LetLockBackendHelper(letLockBackendURI);
-		}
-		return instance;
+	@Value("${letlock.filetransfer.backend.login.url}")
+	private String letLockBackendURI;
+
+	public LetLockBackendServiceFacade(String msg) {
+		logger.info(msg);
 	}
-
-    private LetLockBackendHelper(String letLockBackendURI) {
-		this.letLockBackendURI = letLockBackendURI;
-	}
-
-
 
 	public Boolean authenticate(String token) {
 
@@ -52,7 +42,7 @@ public class LetLockBackendHelper {
 			return false;
 		}
 	}
-	
+
 	public Boolean authenticateForRoom(String token, String roomKey) {
 
 		Client client = ClientBuilder.newClient();

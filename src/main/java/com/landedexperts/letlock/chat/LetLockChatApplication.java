@@ -1,6 +1,8 @@
 package com.landedexperts.letlock.chat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.landedexperts.letlock.chat.service.LetLockBackendServiceFacade;
+
 import io.vavr.jackson.datatype.VavrModule;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,6 +32,11 @@ public class LetLockChatApplication {
 	public ObjectMapper jacksonBuilder() {
 		ObjectMapper mapper = new ObjectMapper();
 		return mapper.registerModule(new VavrModule());
+	}
+	
+	@Bean("letLockBackendServiceFacade")
+	public LetLockBackendServiceFacade letLockBackendServiceFacade() {
+		return new LetLockBackendServiceFacade("letLockBackendServiceFacade initialized");
 	}
 
 }
