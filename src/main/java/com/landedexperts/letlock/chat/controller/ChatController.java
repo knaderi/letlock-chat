@@ -2,10 +2,12 @@ package com.landedexperts.letlock.chat.controller;
 
 import static java.lang.String.format;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -45,9 +47,14 @@ public class ChatController {
 		this.roomService = roomService;
 		this.messagingTemplate = messagingTemplate;
 	}
-	@SubscribeMapping("/chat/{userName}/roomList")
-	public List<SimpleRoomDto> roomList(@DestinationVariable String userName) {
-		return roomService.roomList(userName);
+	
+	@SubscribeMapping("/chat/{token}/roomList")
+	public List<SimpleRoomDto> roomList(@DestinationVariable String token) throws Exception {
+		if(null != token) {
+			token = URLDecoder.decode(token, StandardCharsets.UTF_8.toString());
+		}
+		java.util.Set<String> userRooms = letlockBackendHelper.getUserRooms(token);
+		return roomService.roomList(userRooms);
 	}
 
 	@MessageMapping("/chat/addRoom")
@@ -125,7 +132,7 @@ public class ChatController {
 		userRooms.map(room -> new ChatRoomUserListDto(room.key, room.users)).forEach(roomUserList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
 			sendMessage(roomUserList.roomKey, leaveMessage);
-			messagingTemplate.convertAndSend(format("/chat/{userName}/roomList", userName), userRooms);
+			//messagingTemplate.convertAndSend(format("/chat/{userName}/roomList", userName), userRooms);
 		});
 		// Remove user's empty rooms
 		userRooms.toStream().filter(room -> room.users.isEmpty())

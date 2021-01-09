@@ -22,8 +22,8 @@ public class RoomService {
 		this.roomList = List.of(defaultRoom());
 	}
 
-	public List<SimpleRoomDto> roomList(String userName) {
-		return getRoomList(userName).map(room -> room.asSimpleRoomDto());
+	public List<SimpleRoomDto> roomList(java.util.Set<String> userRooms) {
+		return getRoomList(userRooms).map(room -> room.asSimpleRoomDto());
 	}
 
 	public SimpleRoomDto addRoom(String roomName) {
@@ -83,9 +83,9 @@ public class RoomService {
 		return new Room("Main room");
 	}
 
-	private synchronized List<Room> getRoomList(String userName) {
-		User user = new User(userName);
-		List<Room> userRooms = roomList.filter(room -> room.users.contains(user));
+	private synchronized List<Room> getRoomList(java.util.Set<String> userRoomKeys) {
+
+		List<Room> userRooms = roomList.filter(room -> userRoomKeys.contains(room.key));
 		return userRooms;
 	}
 

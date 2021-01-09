@@ -1,6 +1,8 @@
 package com.landedexperts.letlock.chat.service;
 
 import java.net.HttpURLConnection;
+import java.util.Collections;
+import java.util.Set;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -14,6 +16,7 @@ import org.springframework.http.MediaType;
 
 import com.google.gson.Gson;
 import com.landedexperts.letlock.chat.dto.BooleanResponse;
+import com.landedexperts.letlock.chat.dto.SetResponse;
 
 public class LetLockBackendServiceFacade {
 	private final Logger logger = LoggerFactory.getLogger(LetLockBackendServiceFacade.class);
@@ -58,6 +61,23 @@ public class LetLockBackendServiceFacade {
 		} else {
 			logger.error("Autentication connection exception. Http Code: " + response.getStatus());
 			return false;
+		}
+	}
+	
+	public Set<String> getUserRooms(String token) {
+
+		Client client = ClientBuilder.newClient();
+
+		WebTarget target = client.target(letLockBackendURI + "/get_user_rooms").queryParam("token", token);
+
+		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
+			String replyString = response.readEntity(String.class);
+			SetResponse responseObject = new Gson().fromJson(replyString, SetResponse.class);
+			return responseObject.getResult();
+		} else {
+			logger.error("Autentication connection exception. Http Code: " + response.getStatus());
+			return Collections.EMPTY_SET;
 		}
 	}
 
