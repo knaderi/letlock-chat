@@ -68,7 +68,8 @@ public class RoomService {
 		});
 		return usersInChatRoom(userRoomKey.roomKey);
 	}
-
+    //TODO: this method and removeUserFromRoom (above) do the same thing for most parts. They need to be integrated into
+	//one and the usage for User logout and disconnection use one method instead.
 	public List<Room> disconnectUser(User user) {
 		final List<Room> userRooms = this.roomList.filter(room -> room.users.contains(user)).map(oldRoom -> {
 			final Room newRoom = oldRoom.unsubscribe(user);

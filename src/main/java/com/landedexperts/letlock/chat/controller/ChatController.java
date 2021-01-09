@@ -106,6 +106,8 @@ public class ChatController {
 		return roomService.removeUserFromRoom(userRoomKeyDto).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
 			sendMessage(userRoomKeyDto.roomKey, leaveMessage);
+			List<Room> userRooms = roomService.disconnectUser(new User(userRoomKeyDto.userName));
+			removeEmptyRooms(userRooms);
 			return userList;
 		}).getOrElseGet(appError -> {
 			log.error("invalid room id...");
@@ -127,13 +129,17 @@ public class ChatController {
 
 	public void handleUserDisconnection(String userName) {
 		final User user = new User(userName);
-		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "User disconnedted", "");
+		final Message leaveMessage = new Message(MessageTypes.LEAVE, userName, "User disconnected", "");
 		List<Room> userRooms = roomService.disconnectUser(user);
 		userRooms.map(room -> new ChatRoomUserListDto(room.key, room.users)).forEach(roomUserList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", roomUserList.roomKey), roomUserList);
 			sendMessage(roomUserList.roomKey, leaveMessage);
-			//messagingTemplate.convertAndSend(format("/chat/{userName}/roomList", userName), userRooms);
+
 		});
+		removeEmptyRooms(userRooms);
+	}
+
+	private void removeEmptyRooms(List<Room> userRooms) {
 		// Remove user's empty rooms
 		userRooms.toStream().filter(room -> room.users.isEmpty())
 				.forEach(emptyRoom -> roomService.removeRoom(emptyRoom.name));
