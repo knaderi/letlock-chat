@@ -76,6 +76,6 @@ public class Room {
 	
     @Override
 	public String toString() {
-		return "Room [name=" + name + ", key=" + key + ", users=" + users + "]";
+		return "Room [name=" + name + ", key=" + key + "]";
 	}
 }

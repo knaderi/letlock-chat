@@ -1,7 +1,5 @@
 package com.landedexperts.letlock.chat.dto;
 
-import java.util.Objects;
-
 public class SimpleRoomDto {
 
     @Override
@@ -18,18 +16,36 @@ public class SimpleRoomDto {
         this.subscribed = false;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SimpleRoomDto that = (SimpleRoomDto) o;
-        return subscribed == that.subscribed &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(key, that.key);
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, key, subscribed);
-    }
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SimpleRoomDto other = (SimpleRoomDto) obj;
+		if (key == null) {
+			if (other.key != null)
+				return false;
+		} else if (!key.equals(other.key))
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		return true;
+	}
+
+  
 }
