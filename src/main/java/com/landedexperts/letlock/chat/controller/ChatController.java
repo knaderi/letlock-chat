@@ -75,9 +75,9 @@ public class ChatController {
 	@MessageMapping("/chat/{roomId}/join")
 	public ChatRoomUserListDto userJoinRoom(UserRoomKeyDto userRoomKey, SimpMessageHeaderAccessor headerAccessor) {
 
-		if (!roomService.roomExist(userRoomKey)) {
-			roomService.addRoom(userRoomKey.roomKey);
-		}
+//		if (!roomService.roomExist(userRoomKey)) {
+//			roomService.addRoom(userRoomKey.roomKey);
+//		}
 		
 		boolean isUserAuthenticatedForRoom = letlockBackendHelper.authenticateForRoom(userRoomKey.token,
 				userRoomKey.roomKey);

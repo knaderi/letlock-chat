@@ -73,7 +73,7 @@ public class LetLockBackendServiceFacade {
 		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			String replyString = response.readEntity(String.class);
-			SetResponse responseObject = new Gson().fromJson(replyString, SetResponse.class);
+			SetResponse<String> responseObject = new Gson().fromJson(replyString, SetResponse.class);
 			return responseObject.getResult();
 		} else {
 			logger.error("Autentication connection exception. Http Code: " + response.getStatus());
