@@ -28,11 +28,11 @@ public class LetLockBackendServiceFacade {
 		logger.info(msg);
 	}
 
-	public Boolean authenticate(String token) {
+	public Boolean validateToken(String token) {
 
 		Client client = ClientBuilder.newClient();
 
-		WebTarget target = client.target(letLockBackendURI + "/authenticate").queryParam("token", token)
+		WebTarget target = client.target(letLockBackendURI + "/validate_token").queryParam("token", token)
 				.queryParam("mode", "json");
 
 		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();

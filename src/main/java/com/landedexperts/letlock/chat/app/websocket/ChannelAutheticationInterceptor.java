@@ -29,8 +29,8 @@ public class ChannelAutheticationInterceptor implements ChannelInterceptor, Appl
 		String token = nativeHeader != null ? nativeHeader.get(0) : "MISSING_TOKEN";
 		StompCommand command = accessor.getCommand();
 		if (StompCommand.CONNECT.equals(command)) {
-			if (!applicationContext.getBean(LetLockBackendServiceFacade.class).authenticate(token)) {
-				throw new RuntimeException("Authetication failed");
+			if (!applicationContext.getBean(LetLockBackendServiceFacade.class).validateToken(token)) {
+				throw new RuntimeException("Failed calling File Transfer Backend to validate token.");
 			}
 
 		}
