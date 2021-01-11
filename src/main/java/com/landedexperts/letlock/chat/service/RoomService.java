@@ -1,5 +1,7 @@
 package com.landedexperts.letlock.chat.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.landedexperts.letlock.chat.app.AppError;
@@ -17,6 +19,7 @@ import io.vavr.control.Either;
 public class RoomService {
 
 	private List<Room> roomList;
+	private final Logger logger = LoggerFactory.getLogger(RoomService.class);
 
 	public RoomService() {
 		this.roomList = List.of(defaultRoom());
@@ -24,7 +27,10 @@ public class RoomService {
 
 	public List<SimpleRoomDto> roomList(java.util.Set<String> userRooms) {
 		List<SimpleRoomDto> roomsList = getRoomList(userRooms).map(room -> room.asSimpleRoomDto());
-		System.out.println(roomsList);
+		if (logger.isDebugEnabled()) {
+			logger.debug("Existing rooms room key");
+			roomList.forEach(room -> logger.debug(room.key));
+		}
 		return roomsList;
 	}
 
@@ -38,7 +44,6 @@ public class RoomService {
 		this.roomList = remove(roomName);
 	}
 
-	
 	public Either<AppError, ChatRoomUserListDto> usersInChatRoom(String roomKey) {
 		return this.roomList.find(room -> room.key.equals(roomKey))
 				.map(room -> new ChatRoomUserListDto(room.key, room.users)).toEither(AppError.INVALID_ROOM_KEY);
@@ -53,7 +58,7 @@ public class RoomService {
 		});
 		return usersInChatRoom(userRoomKey.roomKey);
 	}
-	
+
 	public Set<User> getUserList(String roomKey) {
 
 		Room theRoom = this.roomList.find(room -> room.key.equals(roomKey)).collect(List.collector()).get();
@@ -70,8 +75,10 @@ public class RoomService {
 		});
 		return usersInChatRoom(userRoomKey.roomKey);
 	}
-    //TODO: this method and removeUserFromRoom (above) do the same thing for most parts. They need to be integrated into
-	//one and the usage for User logout and disconnection use one method instead.
+
+	// TODO: this method and removeUserFromRoom (above) do the same thing for most
+	// parts. They need to be integrated into
+	// one and the usage for User logout and disconnection use one method instead.
 	public List<Room> disconnectUser(User user) {
 		final List<Room> userRooms = this.roomList.filter(room -> room.users.contains(user)).map(oldRoom -> {
 			final Room newRoom = oldRoom.unsubscribe(user);
@@ -93,17 +100,19 @@ public class RoomService {
 	}
 
 	private synchronized List<Room> addRoom(Room roomToAdd) {
-		List<Room> ifExist = roomList.toJavaParallelStream().filter(room -> room.key.equals(roomToAdd.key)).collect(List.collector());
-		System.out.println("Existing rooms room key");
-		roomList.forEach(room -> System.out.println(room.key) );
-		
-		System.out.println("Room to be added: " + roomToAdd.key);
-		if(ifExist.size() == 0) {
-			System.out.println("The room did not exist adding it.");
-		    return this.roomList = this.roomList.append(roomToAdd);
-		}else {
-			System.out.println("Room did exists, skiping adding!!!");
+		List<Room> ifExist = roomList.toJavaParallelStream().filter(room -> room.key.equals(roomToAdd.key))
+				.collect(List.collector());
+		if (logger.isDebugEnabled()) {
+			logger.debug("in addRoom - Existing rooms room key");
+			roomList.forEach(room -> logger.debug(room.key));
+			logger.debug("Room to be added: " + roomToAdd.key);
+		}
 
+		if (ifExist.size() == 0) {
+			logger.debug("The room did not exist adding it.");
+			return this.roomList = this.roomList.append(roomToAdd);
+		} else {
+			logger.debug("Room did exists, skiping adding!!!");
 			return this.roomList;
 		}
 	}
@@ -118,7 +127,7 @@ public class RoomService {
 	}
 
 	public boolean roomExist(UserRoomKeyDto userRoomKey) {
-		return roomList.exists(room->room.key.equals(userRoomKey.roomKey));
-		
+		return roomList.exists(room -> room.key.equals(userRoomKey.roomKey));
+
 	}
 }
