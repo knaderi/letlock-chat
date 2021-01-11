@@ -23,7 +23,9 @@ public class RoomService {
 	}
 
 	public List<SimpleRoomDto> roomList(java.util.Set<String> userRooms) {
-		return getRoomList(userRooms).map(room -> room.asSimpleRoomDto());
+		List<SimpleRoomDto> roomsList = getRoomList(userRooms).map(room -> room.asSimpleRoomDto());
+		System.out.println(roomsList);
+		return roomsList;
 	}
 
 	public SimpleRoomDto addRoom(String roomName) {
@@ -92,9 +94,16 @@ public class RoomService {
 
 	private synchronized List<Room> addRoom(Room roomToAdd) {
 		List<Room> ifExist = roomList.toJavaParallelStream().filter(room -> room.key.equals(roomToAdd.key)).collect(List.collector());
+		System.out.println("Existing rooms room key");
+		roomList.forEach(room -> System.out.println(room.key) );
+		
+		System.out.println("Room to be added: " + roomToAdd.key);
 		if(ifExist.size() == 0) {
+			System.out.println("The room did not exist adding it.");
 		    return this.roomList = this.roomList.append(roomToAdd);
 		}else {
+			System.out.println("Room did exists, skiping adding!!!");
+
 			return this.roomList;
 		}
 	}

@@ -106,8 +106,8 @@ public class ChatController {
 		return roomService.removeUserFromRoom(userRoomKeyDto).map(userList -> {
 			messagingTemplate.convertAndSend(format("/chat/%s/userList", userList.roomKey), userList);
 			sendMessage(userRoomKeyDto.roomKey, leaveMessage);
-			List<Room> userRooms = roomService.disconnectUser(new User(userRoomKeyDto.userName));
-			removeEmptyRooms(userRooms);
+			//List<Room> userRooms = roomService.disconnectUser(new User(userRoomKeyDto.userName));
+			//removeEmptyRooms(userRooms);
 			return userList;
 		}).getOrElseGet(appError -> {
 			log.error("invalid room id...");
