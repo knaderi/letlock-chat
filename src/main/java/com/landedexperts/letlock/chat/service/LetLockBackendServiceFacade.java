@@ -32,10 +32,9 @@ public class LetLockBackendServiceFacade {
 
 		Client client = ClientBuilder.newClient();
 
-		WebTarget target = client.target(letLockBackendURI + "/validate_token").queryParam("token", token)
-				.queryParam("mode", "json");
+		WebTarget target = client.target(letLockBackendURI + "/validate_token").queryParam("mode", "json");
 
-		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+		Response response = target.request().header("Authorization", "Bearer " + token).accept(MediaType.APPLICATION_JSON_VALUE).get();
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			String replyString = response.readEntity(String.class);
 			BooleanResponse responseObject = new Gson().fromJson(replyString, BooleanResponse.class);
@@ -50,10 +49,9 @@ public class LetLockBackendServiceFacade {
 
 		Client client = ClientBuilder.newClient();
 
-		WebTarget target = client.target(letLockBackendURI + "/authenticate_for_chat_room").queryParam("token", token)
-				.queryParam("roomKey", roomKey);
+		WebTarget target = client.target(letLockBackendURI + "/authenticate_for_chat_room").queryParam("roomKey", roomKey);
 
-		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+		Response response = target.request().header("Authorization", "Bearer " + token).accept(MediaType.APPLICATION_JSON_VALUE).get();
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			String replyString = response.readEntity(String.class);
 			BooleanResponse responseObject = new Gson().fromJson(replyString, BooleanResponse.class);
@@ -68,9 +66,9 @@ public class LetLockBackendServiceFacade {
 
 		Client client = ClientBuilder.newClient();
 
-		WebTarget target = client.target(letLockBackendURI + "/get_user_rooms").queryParam("token", token);
+		WebTarget target = client.target(letLockBackendURI + "/get_user_rooms");
 
-		Response response = target.request().accept(MediaType.APPLICATION_JSON_VALUE).get();
+		Response response = target.request().header("Authorization", "Bearer " + token).accept(MediaType.APPLICATION_JSON_VALUE).get();
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			String replyString = response.readEntity(String.class);
 			SetResponse<String> responseObject = new Gson().fromJson(replyString, SetResponse.class);
