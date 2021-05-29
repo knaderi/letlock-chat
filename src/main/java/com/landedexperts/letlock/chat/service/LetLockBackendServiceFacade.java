@@ -34,15 +34,20 @@ public class LetLockBackendServiceFacade {
 
 		WebTarget target = client.target(letLockBackendURI + "/validate_token").queryParam("mode", "json");
 
-		Response response = target.request().header("Authorization", "Bearer " + token).accept(MediaType.APPLICATION_JSON_VALUE).get();
+		Response response = target.request().header("Authorization", "Bearer " + token)
+				.accept(MediaType.APPLICATION_JSON_VALUE).get();
 		if (response.getStatus() == HttpURLConnection.HTTP_OK) {
 			String replyString = response.readEntity(String.class);
 			BooleanResponse responseObject = new Gson().fromJson(replyString, BooleanResponse.class);
-			return responseObject.getResult().getValue();
-		} else {
-			logger.error("Autentication connection exception. Http Code: " + response.getStatus());
-			return false;
+			if ("SUCCESS".contentEquals(responseObject.getReturnCode()) && responseObject.getResult().getValue()) {
+				return true;
+			} else {
+				logger.error("Authetication failed as authetication token is not valid.");
+				return false;
+			}
 		}
+		logger.error("Autentication connection exception. Http Code: " + response.getStatus());
+		return false;
 	}
 
 	public Boolean authenticateForRoom(String token, String roomKey) {
